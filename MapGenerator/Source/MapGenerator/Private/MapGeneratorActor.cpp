@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MapGenerator.h"
-#include "Engine/LevelStreaming.h"
+#include "Tree.h"
+#include "Rock.h"
 #include "MapGeneratorActor.h"
 
 
@@ -33,10 +34,13 @@ void AMapGeneratorActor::BeginPlay()
 			Level->LevelTransform = FTransform(FVector(posX, posY, 0));
 			Level->bShouldBeLoaded = true;
 			Level->bShouldBeVisible = true;
+
+			ScatterTrees(GetWorld(), posX, posY, 5, 5);
 		}
 	}
 	
 }
+
 
 // Called every frame
 void AMapGeneratorActor::Tick(float DeltaTime)
@@ -44,6 +48,37 @@ void AMapGeneratorActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+void AMapGeneratorActor::ScatterTrees(UWorld *world, int x, int y, int rows, int cols)
+{
+	float xd = (TileSize-200) / rows;
+	float yd = (TileSize-200) / cols;
+	for (int ix = 0; ix <rows; ix++)
+	{
+		for (int iy = 0; iy<cols; iy++)
+		{
+			float p = 1.f;
+
+			if (TreeBlueprint && RockBlueprint)
+			{
+				if (ShouldHappen(10))
+				{
+					world->SpawnActor<ARock>(RockBlueprint, FVector(x + xd*ix + FMath::RandRange(-p, p)*xd, y + yd*iy + FMath::RandRange(-p, p)*yd, 0), FRotator::ZeroRotator);
+				}
+				else
+				{
+					world->SpawnActor<ATree>(TreeBlueprint, FVector(x + xd*ix + FMath::RandRange(-p, p)*xd, y + yd*iy + FMath::RandRange(-p, p)*yd, 0), FRotator::ZeroRotator);
+				}
+			}
+		}
+	}
+}
+
+bool AMapGeneratorActor::ShouldHappen(int percentage)
+{
+	return (FMath::RandRange(1, 100 / percentage) == 1 ? true : false);
+}
+
 
 ULevelStreaming* AMapGeneratorActor::CreateInstance(ULevelStreaming* Level, FString InstanceUniqueName)
 {

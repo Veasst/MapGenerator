@@ -6,6 +6,8 @@
 #include "MapGeneratorActor.generated.h"
 
 class ULevelStreaming;
+class ATree;
+class ARock;
 
 UCLASS()
 class MAPGENERATOR_API AMapGeneratorActor : public AActor
@@ -32,5 +34,12 @@ private:
 	float TileSize = 400;
 
 	ULevelStreaming* CreateInstance(ULevelStreaming* Level, FString InstanceUniqueName);
-	
+	void ScatterTrees(UWorld *world, int x, int y, int rows, int cols);
+	bool ShouldHappen(int percentage);
+
+	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	TSubclassOf<ATree> TreeBlueprint;
+
+	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	TSubclassOf<ARock> RockBlueprint;
 };
