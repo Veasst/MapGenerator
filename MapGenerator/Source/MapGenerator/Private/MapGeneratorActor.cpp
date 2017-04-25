@@ -9,7 +9,7 @@
 // Sets default values
 AMapGeneratorActor::AMapGeneratorActor()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -19,26 +19,44 @@ void AMapGeneratorActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UE_LOG(LogTemp, Warning, TEXT("Potato"));
-
 	for (int x = 0; x < LevelGridSize; x++)
 	{
 		for (int y = 0; y < LevelGridSize; y++)
 		{
-			ULevelStreaming* StreamingLevel = UGameplayStatics::GetStreamingLevel(GetWorld(), FName("ProceduralTile01"));
-			ULevelStreaming* Level = CreateInstance(StreamingLevel, FString(FString::FromInt(x) + "x" + FString::FromInt(y)));
+			ULevelStreaming* StreamingLevel;
 
 			float posX = x*TileSize - ((LevelGridSize * TileSize) / 2);
 			float posY = y*TileSize - ((LevelGridSize * TileSize) / 2);
 
+
+
+			if (ShouldHappen(RockyAreaChance))
+			{
+				StreamingLevel = UGameplayStatics::GetStreamingLevel(GetWorld(), FName("ProceduralTile02"));
+				ScatterRocks(GetWorld(), posX, posY, RockDensity, RockDensity);
+			}
+			else
+			{
+				StreamingLevel = UGameplayStatics::GetStreamingLevel(GetWorld(), FName("ProceduralTile01"));
+				if (ShouldHappen(TreeChance))
+				{
+					ScatterObjects(GetWorld(), posX, posY, TreeDensity, TreeDensity);
+				}
+			}
+
+			ULevelStreaming* Level = CreateInstance(StreamingLevel, FString(FString::FromInt(x) + "x" + FString::FromInt(y)));
 			Level->LevelTransform = FTransform(FVector(posX, posY, 0));
 			Level->bShouldBeLoaded = true;
 			Level->bShouldBeVisible = true;
 
-			ScatterTrees(GetWorld(), posX, posY, 5, 5);
+			if (x == 0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%f %f"), posX, posY);
+			}
+
 		}
 	}
-	
+
 }
 
 
@@ -49,26 +67,49 @@ void AMapGeneratorActor::Tick(float DeltaTime)
 
 }
 
-void AMapGeneratorActor::ScatterTrees(UWorld *world, int x, int y, int rows, int cols)
+void AMapGeneratorActor::ScatterObjects(UWorld *world, int x, int y, int rows, int cols)
 {
-	float xd = (TileSize-200) / rows;
-	float yd = (TileSize-200) / cols;
-	for (int ix = 0; ix <rows; ix++)
+	float xd = (TileSize - 200) / rows;
+	float yd = (TileSize - 200) / cols;
+	for (int ix = 0; ix < rows; ix++)
 	{
-		for (int iy = 0; iy<cols; iy++)
+		for (int iy = 0; iy < cols; iy++)
 		{
 			float p = 1.f;
 
 			if (TreeBlueprint && RockBlueprint)
 			{
-				if (ShouldHappen(10))
+				FVector pos = FVector(x + xd*ix + FMath::RandRange((ix == 0) ? 0 : -p, p)*xd, y + yd*iy + FMath::RandRange((iy == 0) ? 0 : -p, p)*yd, 0);
+
+
+				if (ShouldHappen(RockChance))
 				{
-					world->SpawnActor<ARock>(RockBlueprint, FVector(x + xd*ix + FMath::RandRange(-p, p)*xd, y + yd*iy + FMath::RandRange(-p, p)*yd, 0), FRotator::ZeroRotator);
+					world->SpawnActor<ARock>(RockBlueprint, pos, FRotator::ZeroRotator);
 				}
 				else
 				{
-					world->SpawnActor<ATree>(TreeBlueprint, FVector(x + xd*ix + FMath::RandRange(-p, p)*xd, y + yd*iy + FMath::RandRange(-p, p)*yd, 0), FRotator::ZeroRotator);
+					world->SpawnActor<ATree>(TreeBlueprint, pos, FRotator::ZeroRotator);
 				}
+			}
+		}
+	}
+}
+
+void AMapGeneratorActor::ScatterRocks(UWorld *world, int x, int y, int rows, int cols)
+{
+	float xd = (TileSize - 200) / rows;
+	float yd = (TileSize - 200) / cols;
+	for (int ix = 0; ix < rows; ix++)
+	{
+		for (int iy = 0; iy < cols; iy++)
+		{
+			float p = 1.f;
+
+			if (TreeBlueprint && RockBlueprint)
+			{
+				FVector pos = FVector(x + xd*ix + FMath::RandRange((ix == 0) ? 0 : -p, p)*xd, y + yd*iy + FMath::RandRange((iy == 0) ? 0 : -p, p)*yd, 0);
+
+				world->SpawnActor<ARock>(RockBlueprint, pos, FRotator::ZeroRotator);
 			}
 		}
 	}

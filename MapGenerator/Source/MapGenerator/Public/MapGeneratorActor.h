@@ -33,8 +33,24 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float TileSize = 400;
 
+	UPROPERTY(EditDefaultsOnly)
+	int TreeChance = 97;
+
+	UPROPERTY(EditDefaultsOnly)
+	int RockChance = 10;
+
+	UPROPERTY(EditDefaultsOnly)
+	int RockyAreaChance = 5;
+
+	UPROPERTY(EditDefaultsOnly)
+	int RockDensity = 10;
+
+	UPROPERTY(EditDefaultsOnly)
+	int TreeDensity = 5;
+
 	ULevelStreaming* CreateInstance(ULevelStreaming* Level, FString InstanceUniqueName);
-	void ScatterTrees(UWorld *world, int x, int y, int rows, int cols);
+	void ScatterObjects(UWorld *world, int x, int y, int rows, int cols);
+	void ScatterRocks(UWorld * world, int x, int y, int rows, int cols);
 	bool ShouldHappen(int percentage);
 
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
